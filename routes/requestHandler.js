@@ -11,6 +11,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//Route for creating a new game.
 router.post("/", async (req, res) => {
   try {
     const data = await req.database.createGame(req.body.name);
@@ -22,6 +23,11 @@ router.post("/", async (req, res) => {
 
 router.post("/:id/join", async (req, res) => {
   try {
+    const game = await req.database.playerJoinById(
+      req.params.id,
+      req.body.name
+    );
+    res.json(game);
   } catch (err) {
     res.json({ message: err });
   }
@@ -29,6 +35,12 @@ router.post("/:id/join", async (req, res) => {
 
 router.post("/:id/move", async (req, res) => {
   try {
+    const game = await req.database.playerMoveById(
+      req.params.id,
+      req.body.name,
+      req.body.move
+    );
+    res.json(game);
   } catch (err) {
     res.json({ message: err });
   }

@@ -1,24 +1,20 @@
 const mongoose = require("mongoose");
+const PlayerSchema = require("./PlayerSchema");
 
 const GameSchema = mongoose.Schema({
   //MongoDB creates an ID field which can be accessed once created.
-  // _id: UUID.  The game-id can be accessed as such.
-  player1: {
-    name: {
-      type: String,
-      required: true,
-    },
-    moves: {
-      type: [String],
-    },
+  players: {
+    type: [PlayerSchema],
+    validate: [
+      (val) => {
+        return val.length <= 2;
+      },
+      "Exceeds the limit of 2 players",
+    ],
   },
-  player2: {
-    name: {
-      type: String,
-    },
-    moves: {
-      type: [String],
-    },
+  gameCreatedAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 

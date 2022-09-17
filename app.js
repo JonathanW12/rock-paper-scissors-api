@@ -10,11 +10,9 @@ const createApp = function (database) {
   };
 
   app.use(bodyParser.json());
-  const postRoutes = require("./routes/posts");
-  const getRoutes = require("./routes/gets");
+  const requestHandler = require("./routes/requestHandler");
 
-  app.use("/POST", exposeDatabase, postRoutes);
-  app.use("/GET", getRoutes);
+  app.use("/api/games", exposeDatabase, requestHandler);
 
   return app;
 };
