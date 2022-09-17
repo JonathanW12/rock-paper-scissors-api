@@ -12,7 +12,18 @@ const createApp = function (database) {
   app.use(bodyParser.json());
   const requestHandler = require("./routes/requestHandler");
 
-  app.use("/api/games", exposeDatabase, requestHandler);
+app.use(exposeDatabase);
+
+app.use("/api/games", requestHandler);
+
+app.use("/", (error, req, res, next) => {
+  res.status(error.status || 400);
+  res.json({
+    error: {
+      message: error.message,
+    },
+  });
+});
 
   return app;
 };
