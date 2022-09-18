@@ -16,6 +16,10 @@ const GameSchema = mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  winner: {
+    type: String,
+    default: "To Be Decided",
+  },
 });
 
 module.exports = mongoose.model("Game", GameSchema);

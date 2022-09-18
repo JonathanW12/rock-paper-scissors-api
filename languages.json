@@ -1,0 +1,5 @@
+{
+  "rock": ["rock", "sten"],
+  "paper": ["paper", "papir", "påse"],
+  "scissors": ["scissors", "scissor", "saks", "sax"]
+}

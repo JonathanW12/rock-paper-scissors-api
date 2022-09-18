@@ -1,0 +1,5 @@
+{
+  "rock": { "rock": "tie", "paper": "loser", "scissors": "winner" },
+  "paper": { "paper": "tie", "scissors": "loser", "rock": "winner" },
+  "scissors": { "scissors": "tie", "rock": "loser", "paper": "winner" }
+}
