@@ -53,6 +53,11 @@ function checkDuplicateName(game, name) {
 }
 
 router.get("/:id", async (req, res, next) => {
+  //Temporary test ----
+  res.status(200).send();
+  return;
+  //Temporary test ----
+
   try {
     const game = await req.database.getGameById(req.params.id, "test");
     if (isOver(game)) {
@@ -74,6 +79,10 @@ router.get("/:id", async (req, res, next) => {
 //Route for creating a new game.
 router.post("/", async (req, res, next) => {
   try {
+    if (!req.body.name || req.body.name === "") {
+      const error = new Error(`Name: ${req.body.name} is invalid`);
+      throw error;
+    }
     const data = await req.database.createGame(req.body.name);
     res.status(201);
     res.json(data);
@@ -108,6 +117,7 @@ router.post("/:id/move", async (req, res, next) => {
     isNameInGame(game, req.body.name);
     if (isOver(game) === true) {
       const error = new Error("The game is over.");
+      error.status(400);
       throw error;
     }
     const data = await req.database.playerMoveById(

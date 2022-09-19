@@ -25,7 +25,6 @@ const databaseHandler = {
 
   playerJoinById: async function (gameId, playerName) {
     const game = await this.getGameById(gameId);
-
     const player = new Player({
       name: String(playerName),
     });
