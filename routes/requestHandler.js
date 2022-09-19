@@ -14,7 +14,7 @@ function validateMove(move, moves) {
 }
 
 function validateGame(game, gameId) {
-  if (!game || game == []) {
+  if (!game._id || game == []) {
     const error = new Error(`No game with ID: ${gameId} exists.`);
     throw error;
   }
@@ -43,6 +43,9 @@ function isOver(game) {
 }
 
 function checkDuplicateName(game, name) {
+  if (name === "susan") {
+    console.log("hmm");
+  }
   for (var i of Object.keys(game.players)) {
     if (game.players[i].name === name) {
       const error = new Error(`Name: ${name} already in use in this game.`);
@@ -52,12 +55,15 @@ function checkDuplicateName(game, name) {
   return;
 }
 
-router.get("/:id", async (req, res, next) => {
-  //Temporary test ----
-  res.status(200).send();
+function checkForValidName(name) {
+  if (!name || name === "") {
+    const error = new Error(`Name: ${name} is invalid`);
+    throw error;
+  }
   return;
-  //Temporary test ----
+}
 
+router.get("/:id", async (req, res, next) => {
   try {
     const game = await req.database.getGameById(req.params.id, "test");
     if (isOver(game)) {
@@ -79,10 +85,7 @@ router.get("/:id", async (req, res, next) => {
 //Route for creating a new game.
 router.post("/", async (req, res, next) => {
   try {
-    if (!req.body.name || req.body.name === "") {
-      const error = new Error(`Name: ${req.body.name} is invalid`);
-      throw error;
-    }
+    checkForValidName(req.body.name);
     const data = await req.database.createGame(req.body.name);
     res.status(201);
     res.json(data);
@@ -96,6 +99,8 @@ router.post("/:id/join", async (req, res, next) => {
   try {
     //Validating gameId and duplicate names
     const game = await req.database.getGameById(req.params.id);
+    validateGame(game, req.params.id);
+    checkForValidName(req.body.name);
     checkDuplicateName(game, req.body.name);
     const data = await req.database.playerJoinById(
       req.params.id,
@@ -117,7 +122,6 @@ router.post("/:id/move", async (req, res, next) => {
     isNameInGame(game, req.body.name);
     if (isOver(game) === true) {
       const error = new Error("The game is over.");
-      error.status(400);
       throw error;
     }
     const data = await req.database.playerMoveById(

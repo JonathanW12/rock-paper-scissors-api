@@ -1,11 +1,16 @@
+/*
 const request = require("supertest");
 const createApp = require("../app.js");
 
-const getGameById = jest.fn();
-const createGame = jest.fn().mockImplementation((name) => {
-  const res = { _id: "testId1234", players: [{ name: name }] };
-  return res;
+const validGameId = "testId1234";
+
+const getGameById = jest.fn().mockImplementation((id) => {
+  if (id === validGameId) {
+    const res = { _id: validGameId, players: [{ name: "Gustav" }] };
+    return res;
+  }
 });
+const createGame = jest.fn();
 const playerJoinById = jest.fn();
 const playerMoveById = jest.fn();
 const updateWinner = jest.fn();
@@ -17,24 +22,25 @@ const app = createApp({
   playerMoveById,
   updateWinner,
 });
-
-describe("Test for creating a new game at POST/api/games/", () => {
+describe("Test for performing a move at POST/api/games/$id/move", () => {
   beforeEach(() => {
     createGame.mockClear();
   });
-  describe("Given a a body with a valid name", () => {
+  describe("Given valid data to a game with 1 player", () => {
     const validBodyData = [
-      { name: "Gustav" },
-      { name: "jOnAtHaN" },
-      { name: "X Æ A-12" },
+      { name: "Gustav", move: "rock" },
+      { name: "Gustav", move: "paper" },
+      { name: "Gustav", move: "scissors" },
+      { name: "Gustav", move: "sten" },
+      { name: "Gustav", move: "saks" },
+      { name: "Gustav", move: "påse" },
     ];
-
     for (const body of validBodyData) {
-      test(`responds with 201 created for name ${body.name}`, async () => {
-        await request(app).post("/api/games/").send(body);
-        expect(201);
+      test(`responds with 200 succes for move: ${body.move}`, async () => {
+        await request(app).post(`/api/games/${validGameId}/move`).send(body);
+        expect(200);
       });
-      test(`database.createGame is called once for name ${body.name}`, async () => {
+      test(`database.getGameById is called once for id ${validGameId}`, async () => {
         await request(app).post("/api/games/").send(body);
         expect(createGame.mock.calls.length).toBe(1);
       });
@@ -62,3 +68,4 @@ describe("Test for creating a new game at POST/api/games/", () => {
     }
   });
 });
+*/
