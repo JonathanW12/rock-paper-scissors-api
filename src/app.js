@@ -16,6 +16,13 @@ const createApp = function (database) {
 
   app.use("/api/games", requestHandler);
 
+  app.use((req, res) => {
+    //For invalid requests
+    const error = new Error("Invalid request");
+    error.statusCode = 404;
+    throw error;
+  });
+
   app.use("/", (error, req, res, next) => {
     res.status(error.status || 400);
     res.json({
