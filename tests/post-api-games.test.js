@@ -28,7 +28,6 @@ describe("Test for creating a new game at POST/api/games/", () => {
       { name: "jOnAtHaN" },
       { name: "X Æ A-12" },
     ];
-
     for (const body of validBodyData) {
       test(`responds with 201 created for name ${body.name}`, async () => {
         await request(app).post("/api/games/").send(body).expect(201);

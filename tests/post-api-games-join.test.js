@@ -6,19 +6,56 @@ const inValidId = "testId5678";
 const currentPlayer = "susan";
 const path = String(`/api/games/${validId}/join`);
 
-const getGameById = jest.fn().mockImplementation((id) => {
-  if (id === validId) {
-    const res = {
-      _id: validId,
-      players: [{ name: currentPlayer, move: "saks" }],
-    };
-    return res;
-  } else {
-    //MongoDB returns an error or an empty array if there is no machting id.
-    const res = [];
-    return res;
-  }
-});
+//Creates a default mock implementation and a mock implementation for the
+//first two times the function is called
+const getGameById = jest
+  .fn()
+  .mockImplementation((id) => {
+    //Default mock implementation
+    if (id === validId) {
+      const res = {
+        _id: validId,
+        players: [{ name: currentPlayer, move: "saks" }],
+      };
+      return res;
+    } else {
+      //MongoDB returns an error or an empty array if there is no machting id.
+      const res = [];
+      return res;
+    }
+  })
+  .mockImplementationOnce((id) => {
+    //First time function is called
+    if (id === validId) {
+      const res = {
+        _id: validId,
+        players: [
+          { name: currentPlayer, move: "saks" },
+          { name: "abby", move: "sten" },
+        ],
+      };
+      return res;
+    } else {
+      const res = [];
+      return res;
+    }
+  })
+  .mockImplementationOnce((id) => {
+    //2nd time functon is called
+    if (id === validId) {
+      const res = {
+        _id: validId,
+        players: [
+          { name: currentPlayer, move: "saks" },
+          { name: "abby", move: "sten" },
+        ],
+      };
+      return res;
+    } else {
+      const res = [];
+      return res;
+    }
+  });
 const createGame = jest.fn();
 const playerJoinById = jest.fn().mockImplementation((id, uName) => {
   const res = {
@@ -43,6 +80,17 @@ describe("Test for joining an existing game at POST/api/games/$id/join", () => {
     getGameById.mockClear();
     playerJoinById.mockClear();
   });
+  describe("A third players joins with a valid name and id", () => {
+    const thirdPersonBodyData = { name: "ANNA", testId: validId };
+    test(`responds with 400 bad request for id:  ${thirdPersonBodyData.testId}`, async () => {
+      await request(app).post(path).send(thirdPersonBodyData).expect(400);
+    });
+    test(`database.createGame is never called for name ${thirdPersonBodyData.name}`, async () => {
+      await request(app).post(path).send(thirdPersonBodyData);
+      expect(playerJoinById.mock.calls.length).toBe(0);
+    });
+  });
+
   describe("Given a a body with a valid name and id", () => {
     const validBodyData = [
       { name: "Gustav", testId: validId },
@@ -52,10 +100,7 @@ describe("Test for joining an existing game at POST/api/games/$id/join", () => {
 
     for (const body of validBodyData) {
       test(`responds with 200 succes for name: ${body.name} and id: ${body.testId}`, async () => {
-        await request(app)
-          .post("/api/games/testId1234/join")
-          .send(body)
-          .expect(200);
+        await request(app).post(path).send(body).expect(200);
       });
       test(`database.playerJoinById is called once for name: ${body.name}`, async () => {
         await request(app).post(path).send(body);
@@ -72,6 +117,7 @@ describe("Test for joining an existing game at POST/api/games/$id/join", () => {
       });
     }
   });
+
   describe("Given a body with an invalid name but a valid id", () => {
     const invalidBodyDataName = [
       { name: "", testId: validId },
@@ -92,6 +138,7 @@ describe("Test for joining an existing game at POST/api/games/$id/join", () => {
       });
     }
   });
+
   describe("Given a body with a valid name but an invalid id", () => {
     const invalidBodyData = [
       { name: "gustav", testId: inValidId },

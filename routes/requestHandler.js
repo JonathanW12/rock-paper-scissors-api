@@ -65,14 +65,19 @@ function checkForValidName(name) {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const game = await req.database.getGameById(req.params.id, "test");
+    const game = await req.database.getGameById(req.params.id);
     if (isOver(game)) {
       res.json(game);
       return;
     }
     isNameInGame(game, req.body.name);
     for (var i of Object.keys(game.players)) {
-      if (game.players[i].name != playerName) {
+      //Hiding moves for other players
+      if (game.players[i].name != req.body.name) {
+        //Only hiding actual moves and not just empty fields
+        if (!game.players[i].move || game.players[i].move == "") {
+          continue;
+        }
         game.players[i].move = "Hidden";
       }
     }
@@ -99,6 +104,10 @@ router.post("/:id/join", async (req, res, next) => {
   try {
     //Validating gameId and duplicate names
     const game = await req.database.getGameById(req.params.id);
+    if (game.players.length > 1) {
+      const error = new Error("The game is full");
+      throw error;
+    }
     validateGame(game, req.params.id);
     checkForValidName(req.body.name);
     checkDuplicateName(game, req.body.name);
