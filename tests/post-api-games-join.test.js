@@ -1,5 +1,5 @@
 const request = require("supertest");
-const createApp = require("../app.js");
+const createApp = require("../src/app.js");
 
 const validId = "testId1234";
 const inValidId = "testId5678";
@@ -7,56 +7,49 @@ const currentPlayer = "susan";
 const path = String(`/api/games/${validId}/join`);
 
 //Creates a default mock implementation and a mock implementation for the
-//first two times the function is called
+const defaultBehaviour = (id) => {
+  if (id === validId) {
+    const res = {
+      _id: validId,
+      players: [{ name: currentPlayer, move: "saks" }],
+    };
+    return res;
+  } else {
+    //MongoDB returns an error or an empty array if there is no machting id.
+    const res = [];
+    return res;
+  }
+};
+//Edgecase for a game wiht 2 players already
+const fullGameBehavior = (id) => {
+  if (id === validId) {
+    const res = {
+      _id: validId,
+      players: [
+        { name: currentPlayer, move: "saks" },
+        { name: "abby", move: "sten" },
+      ],
+    };
+    return res;
+  } else {
+    const res = [];
+    return res;
+  }
+};
+
 const getGameById = jest
   .fn()
   .mockImplementation((id) => {
-    //Default mock implementation
-    if (id === validId) {
-      const res = {
-        _id: validId,
-        players: [{ name: currentPlayer, move: "saks" }],
-      };
-      return res;
-    } else {
-      //MongoDB returns an error or an empty array if there is no machting id.
-      const res = [];
-      return res;
-    }
+    return defaultBehaviour(id);
   })
   .mockImplementationOnce((id) => {
     //First time function is called
-    if (id === validId) {
-      const res = {
-        _id: validId,
-        players: [
-          { name: currentPlayer, move: "saks" },
-          { name: "abby", move: "sten" },
-        ],
-      };
-      return res;
-    } else {
-      const res = [];
-      return res;
-    }
+    fullGameBehavior(id);
   })
   .mockImplementationOnce((id) => {
     //2nd time functon is called
-    if (id === validId) {
-      const res = {
-        _id: validId,
-        players: [
-          { name: currentPlayer, move: "saks" },
-          { name: "abby", move: "sten" },
-        ],
-      };
-      return res;
-    } else {
-      const res = [];
-      return res;
-    }
+    fullGameBehavior(id);
   });
-const createGame = jest.fn();
 const playerJoinById = jest.fn().mockImplementation((id, uName) => {
   const res = {
     _id: validId,
@@ -64,15 +57,10 @@ const playerJoinById = jest.fn().mockImplementation((id, uName) => {
   };
   return res;
 });
-const playerMoveById = jest.fn();
-const updateWinner = jest.fn();
 
 const app = createApp({
   getGameById,
-  createGame,
   playerJoinById,
-  playerMoveById,
-  updateWinner,
 });
 
 describe("Test for joining an existing game at POST/api/games/$id/join", () => {

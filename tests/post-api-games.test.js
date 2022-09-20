@@ -1,21 +1,15 @@
 const request = require("supertest");
-const createApp = require("../app.js");
+const createApp = require("../src/app.js");
 
 const getGameById = jest.fn();
 const createGame = jest.fn().mockImplementation((name) => {
   const res = { _id: "testId1234", players: [{ name: name }] };
   return res;
 });
-const playerJoinById = jest.fn();
-const playerMoveById = jest.fn();
-const updateWinner = jest.fn();
 
 const app = createApp({
   getGameById,
   createGame,
-  playerJoinById,
-  playerMoveById,
-  updateWinner,
 });
 
 describe("Test for creating a new game at POST/api/games/", () => {

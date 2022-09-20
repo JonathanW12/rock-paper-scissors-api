@@ -1,5 +1,5 @@
 const request = require("supertest");
-const createApp = require("../app.js");
+const createApp = require("../src/app.js");
 
 const completeGameId = "completeId1";
 const incompleteGameId = "incomplete1";
@@ -39,17 +39,9 @@ const getGameById = jest.fn((id) => {
   }
   return returnNoGame();
 });
-const createGame = jest.fn();
-const playerJoinById = jest.fn();
-const playerMoveById = jest.fn();
-const updateWinner = jest.fn();
 
 const app = createApp({
   getGameById,
-  createGame,
-  playerJoinById,
-  playerMoveById,
-  updateWinner,
 });
 
 describe("Test for getting game info at GET/api/games/:id", () => {

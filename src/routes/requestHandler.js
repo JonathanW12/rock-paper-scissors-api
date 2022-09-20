@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const moves = require("../languages.json");
-const rpcOutcome = require("../rpcOutcome.json");
+const moves = require("../utils/languages.json");
+const rpcOutcome = require("../utils/rpcOutcome.json");
 
 function validateMove(move, moves) {
   for (moveType of Object.keys(moves)) {
@@ -13,14 +13,15 @@ function validateMove(move, moves) {
   throw error;
 }
 
-function validateGame(game, gameId) {
+//MongoDB either throws an error or returns brackets if the game does not excist
+function validateGameExistance(game, gameId) {
   if (!game._id || game == []) {
     const error = new Error(`No game with ID: ${gameId} exists.`);
     throw error;
   }
 }
 
-function isNameInGame(game, name) {
+function handlePlayerNotInTheGame(game, name) {
   for (var i of Object.keys(game.players)) {
     if (game.players[i].name === name) {
       return;
@@ -32,8 +33,7 @@ function isNameInGame(game, name) {
   throw error;
 }
 
-//Checks iif the game is over
-function isOver(game) {
+function isGameOver(game) {
   if (game.players.length > 1) {
     if (game.players[0].move && game.players[1].move) {
       return true;
@@ -43,9 +43,6 @@ function isOver(game) {
 }
 
 function checkDuplicateName(game, name) {
-  if (name === "susan") {
-    console.log("hmm");
-  }
   for (var i of Object.keys(game.players)) {
     if (game.players[i].name === name) {
       const error = new Error(`Name: ${name} already in use in this game.`);
@@ -66,11 +63,11 @@ function checkForValidName(name) {
 router.get("/:id", async (req, res, next) => {
   try {
     const game = await req.database.getGameById(req.params.id);
-    if (isOver(game)) {
+    if (isGameOver(game)) {
       res.json(game);
       return;
     }
-    isNameInGame(game, req.body.name);
+    handlePlayerNotInTheGame(game, req.body.name);
     for (var i of Object.keys(game.players)) {
       //Hiding moves for other players
       if (game.players[i].name != req.body.name) {
@@ -102,13 +99,12 @@ router.post("/", async (req, res, next) => {
 //Route for a player joining an excisting game.
 router.post("/:id/join", async (req, res, next) => {
   try {
-    //Validating gameId and duplicate names
     const game = await req.database.getGameById(req.params.id);
+    validateGameExistance(game, req.params.id);
     if (game.players.length > 1) {
       const error = new Error("The game is full");
       throw error;
     }
-    validateGame(game, req.params.id);
     checkForValidName(req.body.name);
     checkDuplicateName(game, req.body.name);
     const data = await req.database.playerJoinById(
@@ -124,12 +120,11 @@ router.post("/:id/join", async (req, res, next) => {
 //Route for a player to perform a move after joining a game.
 router.post("/:id/move", async (req, res, next) => {
   try {
-    //Validating gameId, name, move and gamestate
     const move = validateMove(req.body.move, moves);
     const game = await req.database.getGameById(req.params.id);
-    validateGame(game, req.params.id);
-    isNameInGame(game, req.body.name);
-    if (isOver(game) === true) {
+    validateGameExistance(game, req.params.id);
+    handlePlayerNotInTheGame(game, req.body.name);
+    if (isGameOver(game) === true) {
       const error = new Error("The game is over.");
       throw error;
     }
@@ -139,7 +134,7 @@ router.post("/:id/move", async (req, res, next) => {
       move
     );
     //Checking if the game is over and determining a winnner.
-    if (isOver(data) === true) {
+    if (isGameOver(data) === true) {
       var winner = "";
       const outcome = String(
         rpcOutcome[data.players[0].move][data.players[1].move]
